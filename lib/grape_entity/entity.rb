@@ -315,7 +315,7 @@ module Grape
       exposures.inject({}) do |output, (attribute, exposure_options)|
         if (exposure_options.has_key?(:proc) || object.respond_to?(attribute)) && conditions_met?(exposure_options, opts)
           partial_output = value_for(attribute, opts)
-          output[key_for(attribute)] =
+          output_attribute =
             if partial_output.respond_to? :serializable_hash
               partial_output.serializable_hash(runtime_options)
             elsif partial_output.kind_of?(Array) && !partial_output.map {|o| o.respond_to? :serializable_hash}.include?(false)
@@ -323,6 +323,13 @@ module Grape
             else
               partial_output
             end
+          
+          if (exposure_options[:with_json_root] == false) then
+            output.merge!(output_attribute)
+          else
+            output[key_for(attribute)] = output_attribute
+          end
+        
         end
         output
       end
@@ -343,11 +350,11 @@ module Grape
     protected
 
     def key_for(attribute)
-      exposures[attribute.to_sym][:as] || attribute.to_sym
+      exposures[attribute][:as] || attribute
     end
 
     def value_for(attribute, options = {})
-      exposure_options = exposures[attribute.to_sym]
+      exposure_options = exposures[attribute]
 
       if exposure_options[:proc]
         exposure_options[:proc].call(object, options)
