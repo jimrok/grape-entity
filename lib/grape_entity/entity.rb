@@ -325,7 +325,7 @@ module Grape
             end
           
           if (exposure_options[:with_json_root] == false) then
-            output.merge!(output_attribute)
+            output.merge!(output_attribute) if output_attribute
           else
             output[key_for(attribute)] = output_attribute
           end
